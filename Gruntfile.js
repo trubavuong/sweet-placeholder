@@ -114,8 +114,8 @@ module.exports = function (grunt) {
         concat: {
             dist: {
                 options: {
-                    banner: '(function () {\n    \'use strict\';\n\n',
-                    footer: '\n}());',
+                    banner: '(function (window) {\n    \'use strict\';\n\n',
+                    footer: '\n}(window));',
                     process: function (src) {
                         return addTabToEachLine(formalizeJsSrc(src)) + '\n';
                     }
