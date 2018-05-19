@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Demo</title>
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <style>
+        .panel {
+            background: #F1F1F1;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <form class="col-8">
+                <div class="form-group panel">
+                    <label for="placeholder-input"><strong>Our sweet placeholder</strong></label>
+                    <textarea class="form-control" id="placeholder-input" placeholder="Default placeholder" rows=5></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-12">
+                        <button type="button" class="btn btn-success" onclick="create()">Create placeholder</button>
+                        <button type="button" class="btn btn-primary" onclick="start()">Start</button>
+                        <button type="button" class="btn btn-warning" onclick="pause()">Pause</button>
+                        <button type="button" class="btn btn-warning" onclick="resume()">Resume</button>
+                        <button type="button" class="btn btn-secondary" onclick="stop()">Stop</button>
+                        <button type="button" class="btn btn-danger" onclick="destroy()">Destroy placeholder</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <pre id="placeholder-input-code">Example code will be generated when you hit 'Create placeholder' button.</pre>
+                </div>
+
+                <br>
+                <p><strong><u>Settings ( You must hit 'Create placeholder' button to apply new settings )</u></strong></p>
+
+                <div class="form-row">
+                    <div class="form-group col-12">
+                        <label for="placeholder-input-strings">Strings (each string per line, separated by ";" for this demo only) (deletion character "\b" is rendered not beautiful in textarea)</label>
+                        <textarea class="form-control" id="placeholder-input-strings" rows="7">
+Sweet placeholder;
+Just test deletion&#8;&#8;&#8;&#8;&#8;&#8;&#8;&#8;=> DONE!!!;
+It's cool, huh?;
+Not yet!;
+Multi-lines in textarea&#10;is really&#10;awesome!!!</textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label for="placeholder-input-cursor">Cursor</label>
+                        <input class="form-control" type="text" id="placeholder-input-cursor" value="|">
+                    </div>
+
+                    <div class="form-group col-6">
+                        <label for="placeholder-input-auto-start">Auto start</label>
+                        <select class="custom-select" id="placeholder-input-auto-start">
+                            <option value="1">Yes</option>
+                            <option value="" selected="">No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-4">
+                        <label for="placeholder-input-char-delay">Character delay (in milliseconds)</label>
+                        <input class="form-control" type="number" id="placeholder-input-char-delay" value="50">
+                    </div>
+
+                    <div class="form-group col-4">
+                        <label for="placeholder-input-string-delay">String delay (in milliseconds)</label>
+                        <input class="form-control" type="number" id="placeholder-input-string-delay" value="100">
+                    </div>
+
+                    <div class="form-group col-4">
+                        <label for="placeholder-input-loop">Number of loops (0 is forever)</label>
+                        <input class="form-control" type="number" id="placeholder-input-loop" value="0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-4">
+                        <label for="placeholder-input-focus-action">Focus action</label>
+                        <select class="custom-select" id="placeholder-input-focus-action">
+                            <option value="">None</option>
+                            <option value="start">Start</option>
+                            <option value="pause">Pause</option>
+                            <option value="resume" selected>Resume</option>
+                            <option value="stop">Stop</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-4">
+                        <label for="placeholder-input-blur-action">Blur action</label>
+                        <select class="custom-select" id="placeholder-input-blur-action">
+                            <option value="">None</option>
+                            <option value="pause" selected>Pause</option>
+                            <option value="stop">Stop</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-4">
+                        <label for="placeholder-input-clear-action">Clear action</label>
+                        <select class="custom-select" id="placeholder-input-clear-action">
+                            <option value="">None</option>
+                            <option value="start" selected>Start</option>
+                            <option value="pause">Pause</option>
+                            <option value="resume">Resume</option>
+                            <option value="stop">Stop</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+            <div class="col-4">
+                <textarea class="form-control col-12" id="placeholder-input-log" cols="30" rows="20" readonly="readonly" placeholder="Event logs"></textarea>
+                <button class="btn btn-danger btn-block" onclick="clearPlaceholderInputLogs()">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/sweet-placeholder.js"></script>
+    <script>
+        var placeholderInstance,
+            ELEMENT_IDS = {
+                PLACEHOLDER_INPUT: 'placeholder-input',
+                PLACEHOLDER_INPUT_CODE: 'placeholder-input-code',
+                PLACEHOLDER_INPUT_CURSOR: 'placeholder-input-cursor',
+                PLACEHOLDER_INPUT_AUTO_START: 'placeholder-input-auto-start',
+                PLACEHOLDER_INPUT_STRINGS: 'placeholder-input-strings',
+                PLACEHOLDER_INPUT_CHAR_DELAY: 'placeholder-input-char-delay',
+                PLACEHOLDER_INPUT_STRING_DELAY: 'placeholder-input-string-delay',
+                PLACEHOLDER_INPUT_LOOP: 'placeholder-input-loop',
+                PLACEHOLDER_INPUT_FOCUS_ACTION: 'placeholder-input-focus-action',
+                PLACEHOLDER_INPUT_BLUR_ACTION: 'placeholder-input-blur-action',
+                PLACEHOLDER_INPUT_CLEAR_ACTION: 'placeholder-input-clear-action',
+                PLACEHOLDER_INPUT_LOG: 'placeholder-input-log'
+            };
+
+        function writeLogToTextarea(textareaId, msg) {
+            var textarea = document.getElementById(textareaId),
+                value = (textarea.value || '');
+            textarea.value = value + (value ? '\n' : '') + msg;
+            textarea.scrollTop = textarea.scrollHeight;
+        }
+
+        function writePlaceholderInputLog(msg) {
+            writeLogToTextarea(ELEMENT_IDS.PLACEHOLDER_INPUT_LOG, msg);
+        }
+
+        function clearLogs(textareaId) {
+            var textarea = document.getElementById(textareaId);
+            textarea.value = '';
+        }
+
+        function clearPlaceholderInputLogs() {
+            clearLogs(ELEMENT_IDS.PLACEHOLDER_INPUT_LOG);
+        }
+
+        function createPlaceholder() {
+            var options = {
+                    cursor: document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_CURSOR).value,
+                    autoStart: !!document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_AUTO_START).value,
+                    strings: (document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_STRINGS).value || '').split(/;\n/g),
+                    charDelay: parseInt(document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_CHAR_DELAY).value, 10),
+                    stringDelay: parseInt(document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_STRING_DELAY).value, 10),
+                    loop: parseInt(document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_LOOP).value, 10),
+                    focusAction: document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_FOCUS_ACTION).value,
+                    blurAction: document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_BLUR_ACTION).value,
+                    clearAction: document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_CLEAR_ACTION).value,
+                },
+                optionsString = JSON.stringify(options, null, 4)
+                codeString = 'var placeholder = app.create(' + optionsString.replace(/^{/, '{\n    "element": document.getElementById("input-id"),') + ');';
+
+            options.element = document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT);
+
+            var placeholder = app.create(options);
+
+            document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_CODE).innerText = codeString;
+
+            placeholder.addEventListener('start', function () {
+                writePlaceholderInputLog('Start');
+            });
+
+            placeholder.addEventListener('stop', function () {
+                writePlaceholderInputLog('Stop');
+            });
+
+            placeholder.addEventListener('pause', function () {
+                writePlaceholderInputLog('Pause');
+            });
+
+            placeholder.addEventListener('resume', function () {
+                writePlaceholderInputLog('Resume');
+            });
+
+            placeholder.addEventListener('destroy', function () {
+                writePlaceholderInputLog('Destroy');
+            });
+
+            placeholder.addEventListener('begin-string', function () {
+                writePlaceholderInputLog('  > begin-string');
+            });
+
+            placeholder.addEventListener('end-string', function () {
+                writePlaceholderInputLog('  > end-string');
+            });
+
+            placeholder.addEventListener('begin-loop', function () {
+                writePlaceholderInputLog('> begin-loop');
+            });
+
+            placeholder.addEventListener('end-loop', function () {
+                writePlaceholderInputLog('> end-loop');
+            });
+
+            return placeholder;
+        }
+
+        function usePlaceholderInstance(callback) {
+            if (placeholderInstance) {
+                callback(placeholderInstance);
+            }
+            else {
+                alert('You must hit "Create placeholder" button first!');
+            }
+        }
+
+        function create() {
+            if (placeholderInstance) {
+                placeholderInstance.destroy();
+            }
+            placeholderInstance = createPlaceholder();
+        }
+
+        function start() {
+            usePlaceholderInstance(function (placeholderInstance) {
+                placeholderInstance.start(true);
+            });
+        }
+
+        function resume() {
+            usePlaceholderInstance(function (placeholderInstance) {
+                placeholderInstance.start();
+            });
+        }
+
+        function pause() {
+            usePlaceholderInstance(function (placeholderInstance) {
+                placeholderInstance.pause();
+            });
+        }
+
+        function stop() {
+            usePlaceholderInstance(function (placeholderInstance) {
+                placeholderInstance.stop();
+            });
+        }
+
+        function destroy() {
+            usePlaceholderInstance(function (placeholderInstance) {
+                placeholderInstance.destroy();
+            });
+            placeholderInstance = null;
+        }
+    </script>
+</body>
+</html>

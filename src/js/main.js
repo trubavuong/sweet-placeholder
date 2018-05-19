@@ -45,24 +45,37 @@ function Placeholder(options) {
     if (!('placeholder' in this.element)) {
         throw new Error('"placeholder" attribute of passing element is not supported');
     }
+    this.elementEventListeners = [];
     this.originalPlaceholder = this.element.getAttribute('placeholder') || '';
     this.strings = this._filterStrings(options.strings || []);
     this.charDelay = options.charDelay >= 0 ? options.charDelay : 100;
     this.stringDelay = options.stringDelay >= 0 ? options.stringDelay : 1000;
     this.loop = options.loop >= 0 ? options.loop : 0;
     this.cursor = typeof options.cursor === 'string' ? options.cursor : '|';
-    this.onFocusAction = options.onFocusAction;
-    this.onClearInputAction = options.onClearInputAction;
+    this.autoStart = options.autoStart;
+    this.focusAction = options.focusAction;
+    if ([Placeholder.ActionType.STOP, Placeholder.ActionType.PAUSE].indexOf(options.blurAction) >= 0) {
+        this.blurAction = options.blurAction;
+    }
+    this.clearAction = options.clearAction;
     this.dispatcher = new EventDispatcher();
     this._initState();
     this._bootstrap();
 }
+
+Placeholder.ActionType = {
+    START: 'start',
+    STOP: 'stop',
+    PAUSE: 'pause',
+    RESUME: 'resume',
+};
 
 Placeholder.EventType = {
     START: 'start',
     STOP: 'stop',
     PAUSE: 'pause',
     RESUME: 'resume',
+    DESTROY: 'destroy',
     BEGIN_STRING: 'begin-string',
     END_STRING: 'end-string',
     BEGIN_LOOP: 'begin-loop',
@@ -76,6 +89,10 @@ Placeholder.State = {
 };
 
 Placeholder.prototype.start = function (forceRestart) {
+    if (this.element.value) {
+        return;
+    }
+
     switch (this.state.id) {
     case Placeholder.State.STOPPED:
         this._start();
@@ -107,6 +124,22 @@ Placeholder.prototype.stop = function () {
         this._initState();
         this.dispatcher.dispatchEvent(Placeholder.EventType.STOP);
     }
+};
+
+Placeholder.prototype.destroy = function () {
+    this.stop();
+
+    var elementEventListener,
+        event, listener, i;
+    for (i = 0; i < this.elementEventListeners.length; i += 1) {
+        elementEventListener = this.elementEventListeners[i];
+        event = elementEventListener[0];
+        listener = elementEventListener[1];
+        this.element.removeEventListener(event, listener);
+    }
+
+    this.element.setAttribute('placeholder', this.originalPlaceholder);
+    this.dispatcher.dispatchEvent(Placeholder.EventType.DESTROY);
 };
 
 Placeholder.prototype.pause = function () {
@@ -152,30 +185,57 @@ Placeholder.prototype._extractDispatchingParams = function () {
     } : {};
 };
 
+Placeholder.prototype._doAction = function (action) {
+    var didAnything = true;
+
+    switch (action) {
+    case Placeholder.ActionType.START:
+        this.start(true);
+        break;
+
+    case Placeholder.ActionType.RESUME:
+        this.start();
+        break;
+
+    case Placeholder.ActionType.STOP:
+        this.stop();
+        break;
+
+    case Placeholder.ActionType.PAUSE:
+        this.pause();
+        break;
+
+    default:
+        didAnything = false;
+        break;
+    }
+
+    return didAnything;
+};
+
 Placeholder.prototype._bootstrap = function () {
     var self = this;
     this._addEventListenerToElement('input', function () {
         if (self.element.value) {
             self.pause();
         }
-        else if (self.onClearInputAction) {
-            var isStart = self.onClearInputAction === 'start';
+        else {
             self.element.setAttribute('placeholder', self.originalPlaceholder);
-            self.start(isStart);
+            self._doAction(self.clearAction);
         }
     });
 
-    if (this.onFocusAction) {
-        this._addEventListenerToElement('focus', function () {
-            self.start(self.onFocusAction === 'start');
-        });
+    this._addEventListenerToElement('focus', function () {
+        self._doAction(self.focusAction);
+    });
 
-        this._addEventListenerToElement('blur', function () {
-            self.pause();
+    this._addEventListenerToElement('blur', function () {
+        if (self._doAction(self.blurAction)) {
             self.element.setAttribute('placeholder', self.originalPlaceholder);
-        });
-    }
-    else {
+        }
+    });
+
+    if (this.autoStart) {
         this.start();
     }
 };
@@ -183,6 +243,7 @@ Placeholder.prototype._bootstrap = function () {
 Placeholder.prototype._addEventListenerToElement = function (event, listener) {
     if (typeof this.element.addEventListener === 'function') {
         this.element.addEventListener(event, listener);
+        this.elementEventListeners.push([event, listener]);
     }
 };
 
