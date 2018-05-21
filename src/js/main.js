@@ -1,5 +1,5 @@
 // Change app name to anything to use as global entry point
-var APP_NAME = 'app';
+var APP_NAME = 'Placeholder';
 
 function EventDispatcher() {
     this.events = {};
@@ -115,14 +115,14 @@ Placeholder.prototype.start = function (forceRestart) {
 
 Placeholder.prototype._start = function () {
     this._next();
-    this.dispatcher.dispatchEvent(Placeholder.EventType.START);
+    this._dispatchEvent(Placeholder.EventType.START);
 };
 
 Placeholder.prototype.stop = function () {
     if (this.state.id !== Placeholder.State.STOPPED) {
         this._clearTimeout();
         this._initState();
-        this.dispatcher.dispatchEvent(Placeholder.EventType.STOP);
+        this._dispatchEvent(Placeholder.EventType.STOP);
     }
 };
 
@@ -139,20 +139,20 @@ Placeholder.prototype.destroy = function () {
     }
 
     this.element.setAttribute('placeholder', this.originalPlaceholder);
-    this.dispatcher.dispatchEvent(Placeholder.EventType.DESTROY);
+    this._dispatchEvent(Placeholder.EventType.DESTROY);
 };
 
 Placeholder.prototype.pause = function () {
     if (this.state.id === Placeholder.State.PLAYING) {
         this._clearTimeout();
         this.state.id = Placeholder.State.PAUSED;
-        this.dispatcher.dispatchEvent(Placeholder.EventType.PAUSE);
+        this._dispatchEvent(Placeholder.EventType.PAUSE);
     }
 };
 
 Placeholder.prototype._resume = function () {
     this._next();
-    this.dispatcher.dispatchEvent(Placeholder.EventType.RESUME);
+    this._dispatchEvent(Placeholder.EventType.RESUME);
 };
 
 Placeholder.prototype.addEventListener = function (event, listener) {
@@ -281,6 +281,10 @@ Placeholder.prototype._transformString = function (s) {
     return r;
 };
 
+Placeholder.prototype._dispatchEvent = function (event) {
+    this.dispatcher.dispatchEvent(event, this._extractDispatchingParams());
+};
+
 Placeholder.prototype._next = function () {
     if (this.strings.length <= 0) {
         return this.stop();
@@ -342,7 +346,7 @@ Placeholder.prototype._next = function () {
             if (next.events.length > 0) {
                 var i;
                 for (i = 0; i < next.events.length; i += 1) {
-                    self.dispatcher.dispatchEvent(next.events[i], self._extractDispatchingParams());
+                    self._dispatchEvent(next.events[i]);
                 }
             }
             if (isEndLoop) {

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Demo</title>
+    <title>Textarea - Sweet placeholder</title>
     <link rel="stylesheet" href="./css/bootstrap.min.css">
     <style>
         .panel {
@@ -13,6 +13,9 @@
 </head>
 <body>
     <div class="container">
+        <h1><em>Textarea demo</em></h1>
+        <hr>
+
         <div class="row justify-content-center">
             <form class="col-8">
                 <div class="form-group panel">
@@ -46,7 +49,7 @@ Sweet placeholder;
 Just test deletion&#8;&#8;&#8;&#8;&#8;&#8;&#8;&#8;=> DONE!!!;
 It's cool, huh?;
 Not yet!;
-Multi-lines in textarea&#10;is really&#10;awesome!!!</textarea>
+Multi-lines in textarea&#10;is really&#10;awesome!!!;</textarea>
                     </div>
                 </div>
 
@@ -164,7 +167,7 @@ Multi-lines in textarea&#10;is really&#10;awesome!!!</textarea>
             var options = {
                     cursor: document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_CURSOR).value,
                     autoStart: !!document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_AUTO_START).value,
-                    strings: (document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_STRINGS).value || '').split(/;\n/g),
+                    strings: (document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_STRINGS).value || '').replace(/;$/, '').split(/;\n/g),
                     charDelay: parseInt(document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_CHAR_DELAY).value, 10),
                     stringDelay: parseInt(document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_STRING_DELAY).value, 10),
                     loop: parseInt(document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_LOOP).value, 10),
@@ -173,11 +176,11 @@ Multi-lines in textarea&#10;is really&#10;awesome!!!</textarea>
                     clearAction: document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_CLEAR_ACTION).value,
                 },
                 optionsString = JSON.stringify(options, null, 4)
-                codeString = 'var placeholder = app.create(' + optionsString.replace(/^{/, '{\n    "element": document.getElementById("input-id"),') + ');';
+                codeString = 'var placeholder = Placeholder.create(' + optionsString.replace(/^{/, '{\n    "element": document.getElementById("input-id"),') + ');';
 
             options.element = document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT);
 
-            var placeholder = app.create(options);
+            var placeholder = Placeholder.create(options);
 
             document.getElementById(ELEMENT_IDS.PLACEHOLDER_INPUT_CODE).innerText = codeString;
 
