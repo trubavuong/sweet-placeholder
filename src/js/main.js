@@ -37,6 +37,29 @@ EventDispatcher.prototype.dispatchEvent = function (event, params) {
     }
 };
 
+var ActionType = {
+        START: 'start',
+        STOP: 'stop',
+        PAUSE: 'pause',
+        RESUME: 'resume',
+    },
+    EventType = {
+        START: 'start',
+        STOP: 'stop',
+        PAUSE: 'pause',
+        RESUME: 'resume',
+        DESTROY: 'destroy',
+        BEGIN_STRING: 'begin-string',
+        END_STRING: 'end-string',
+        BEGIN_LOOP: 'begin-loop',
+        END_LOOP: 'end-loop',
+    },
+    State = {
+        STOPPED: 0,
+        PLAYING: 1,
+        PAUSED: 2
+    };
+
 function Placeholder(options) {
     this.element = options.element;
     if (!(this.element instanceof Element)) {
@@ -54,7 +77,7 @@ function Placeholder(options) {
     this.cursor = typeof options.cursor === 'string' ? options.cursor : '|';
     this.autoStart = options.autoStart;
     this.focusAction = options.focusAction;
-    if ([Placeholder.ActionType.STOP, Placeholder.ActionType.PAUSE].indexOf(options.blurAction) >= 0) {
+    if ([ActionType.STOP, ActionType.PAUSE].indexOf(options.blurAction) >= 0) {
         this.blurAction = options.blurAction;
     }
     this.clearAction = options.clearAction;
@@ -63,29 +86,12 @@ function Placeholder(options) {
     this._bootstrap();
 }
 
-Placeholder.ActionType = {
-    START: 'start',
-    STOP: 'stop',
-    PAUSE: 'pause',
-    RESUME: 'resume',
+Placeholder.prototype.addEventListener = function (event, listener) {
+    this.dispatcher.addEventListener(event, listener);
 };
 
-Placeholder.EventType = {
-    START: 'start',
-    STOP: 'stop',
-    PAUSE: 'pause',
-    RESUME: 'resume',
-    DESTROY: 'destroy',
-    BEGIN_STRING: 'begin-string',
-    END_STRING: 'end-string',
-    BEGIN_LOOP: 'begin-loop',
-    END_LOOP: 'end-loop',
-};
-
-Placeholder.State = {
-    STOPPED: 0,
-    PLAYING: 1,
-    PAUSED: 2
+Placeholder.prototype.removeEventListener = function (event, listener) {
+    this.dispatcher.removeEventListener(event, listener);
 };
 
 Placeholder.prototype.start = function (forceRestart) {
@@ -94,11 +100,11 @@ Placeholder.prototype.start = function (forceRestart) {
     }
 
     switch (this.state.id) {
-    case Placeholder.State.STOPPED:
+    case State.STOPPED:
         this._start();
         break;
 
-    case Placeholder.State.PAUSED:
+    case State.PAUSED:
         if (forceRestart) {
             this.stop();
             this._start();
@@ -113,16 +119,20 @@ Placeholder.prototype.start = function (forceRestart) {
     }
 };
 
-Placeholder.prototype._start = function () {
-    this._next();
-    this._dispatchEvent(Placeholder.EventType.START);
-};
-
 Placeholder.prototype.stop = function () {
-    if (this.state.id !== Placeholder.State.STOPPED) {
+    if (this.state.id !== State.STOPPED) {
         this._clearTimeout();
         this._initState();
-        this._dispatchEvent(Placeholder.EventType.STOP);
+        this._dispatchEvent(EventType.STOP);
+    }
+    this._resetPlaceholder();
+};
+
+Placeholder.prototype.pause = function () {
+    if (this.state.id === State.PLAYING) {
+        this._clearTimeout();
+        this.state.id = State.PAUSED;
+        this._dispatchEvent(EventType.PAUSE);
     }
 };
 
@@ -138,34 +148,27 @@ Placeholder.prototype.destroy = function () {
         this.element.removeEventListener(event, listener);
     }
 
-    this.element.setAttribute('placeholder', this.originalPlaceholder);
-    this._dispatchEvent(Placeholder.EventType.DESTROY);
+    this._resetPlaceholder();
+    this._dispatchEvent(EventType.DESTROY);
 };
 
-Placeholder.prototype.pause = function () {
-    if (this.state.id === Placeholder.State.PLAYING) {
-        this._clearTimeout();
-        this.state.id = Placeholder.State.PAUSED;
-        this._dispatchEvent(Placeholder.EventType.PAUSE);
-    }
+Placeholder.prototype._start = function () {
+    this._next();
+    this._dispatchEvent(EventType.START);
 };
 
 Placeholder.prototype._resume = function () {
     this._next();
-    this._dispatchEvent(Placeholder.EventType.RESUME);
+    this._dispatchEvent(EventType.RESUME);
 };
 
-Placeholder.prototype.addEventListener = function (event, listener) {
-    this.dispatcher.addEventListener(event, listener);
-};
-
-Placeholder.prototype.removeEventListener = function (event, listener) {
-    this.dispatcher.removeEventListener(event, listener);
+Placeholder.prototype._resetPlaceholder = function () {
+    this.element.setAttribute('placeholder', this.originalPlaceholder);
 };
 
 Placeholder.prototype._initState = function () {
     this.state = {
-        id: Placeholder.State.STOPPED,
+        id: State.STOPPED,
         charIndex: 0,
         stringIndex: 0,
         loop: 0,
@@ -189,19 +192,19 @@ Placeholder.prototype._doAction = function (action) {
     var didAnything = true;
 
     switch (action) {
-    case Placeholder.ActionType.START:
+    case ActionType.START:
         this.start(true);
         break;
 
-    case Placeholder.ActionType.RESUME:
+    case ActionType.RESUME:
         this.start();
         break;
 
-    case Placeholder.ActionType.STOP:
+    case ActionType.STOP:
         this.stop();
         break;
 
-    case Placeholder.ActionType.PAUSE:
+    case ActionType.PAUSE:
         this.pause();
         break;
 
@@ -215,12 +218,12 @@ Placeholder.prototype._doAction = function (action) {
 
 Placeholder.prototype._bootstrap = function () {
     var self = this;
-    this._addEventListenerToElement('input', function () {
+    this._addEventListenerToElement('keypress', function () {
         if (self.element.value) {
             self.pause();
         }
         else {
-            self.element.setAttribute('placeholder', self.originalPlaceholder);
+            self._resetPlaceholder();
             self._doAction(self.clearAction);
         }
     });
@@ -231,7 +234,7 @@ Placeholder.prototype._bootstrap = function () {
 
     this._addEventListenerToElement('blur', function () {
         if (self._doAction(self.blurAction)) {
-            self.element.setAttribute('placeholder', self.originalPlaceholder);
+            self._resetPlaceholder();
         }
     });
 
@@ -302,7 +305,7 @@ Placeholder.prototype._next = function () {
             str = this.strings[state.stringIndex];
         if (state.charIndex === 0) {
             if (state.stringIndex === 0) {
-                events.push(Placeholder.EventType.BEGIN_LOOP);
+                events.push(EventType.BEGIN_LOOP);
                 if (this.loop > 0 && state.loop >= this.loop) {
                     return this.stop();
                 }
@@ -310,13 +313,13 @@ Placeholder.prototype._next = function () {
             if (state.stringIndex > 0 || state.loop >= 1) {
                 delay = this.stringDelay;
             }
-            events.push(Placeholder.EventType.BEGIN_STRING);
+            events.push(EventType.BEGIN_STRING);
         }
         else if (state.charIndex === str.length - 1) {
             isEndString = true;
-            events.push(Placeholder.EventType.END_STRING);
+            events.push(EventType.END_STRING);
             if (state.stringIndex === this.strings.length - 1) {
-                events.push(Placeholder.EventType.END_LOOP);
+                events.push(EventType.END_LOOP);
                 isEndLoop = true;
             }
         }
@@ -339,7 +342,7 @@ Placeholder.prototype._next = function () {
         }
     }
 
-    state.id = Placeholder.State.PLAYING;
+    state.id = State.PLAYING;
     state.timeoutId = setTimeout(function () {
         var next = state.next;
         if (next) {
@@ -360,6 +363,8 @@ Placeholder.prototype._next = function () {
 };
 
 var app = {
+    EventType: EventType,
+    ActionType: ActionType,
     create: function (options) {
         return new Placeholder(options);
     }
