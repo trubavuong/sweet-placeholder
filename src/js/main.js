@@ -60,28 +60,102 @@ var ActionType = {
         PAUSED: 2
     };
 
+function filterStrings(rawStrings, specialDelayRegex, newlineDelay) {
+    var strings = [],
+        stringSpecs = [],
+        stringSpec,
+        matches,
+        matchIndex,
+        tmpString,
+        string,
+        i,
+        j;
+
+    for (i = 0; i < rawStrings.length; i += 1) {
+        string = rawStrings[i];
+        if (string && string.length > 0) {
+            tmpString = string;
+            stringSpec = {};
+            while ((matches = tmpString.match(specialDelayRegex))) {
+                matchIndex = tmpString.search(specialDelayRegex);
+                stringSpec[matchIndex] = parseInt(matches[1], 10);
+                tmpString = tmpString.replace(matches[0], '');
+            }
+
+            for (j = 0; j < tmpString.length; j += 1) {
+                if (tmpString[j] === '\n') {
+                    stringSpec[j] = newlineDelay;
+                }
+            }
+
+            strings.push(tmpString);
+            stringSpecs.push(stringSpec);
+        }
+    }
+
+    return {
+        strings: strings,
+        stringSpecs: stringSpecs,
+    };
+}
+
+function transformString(s) {
+    var r = '',
+        c, i;
+    for (i = 0; i < s.length; i += 1) {
+        c = s[i];
+        if (c === '\b' && r.length > 0) {
+            r = r.substring(0, r.length - 1);
+        }
+        else {
+            r += c;
+        }
+    }
+    return r;
+}
+
+function getNonNegativeNumber(delay, defaultDelay) {
+    return delay >= 0 ? delay : defaultDelay;
+}
+
 function Placeholder(options) {
     this.element = options.element;
     if (!(this.element instanceof Element)) {
         throw new Error('"options.element" is not an Element object');
     }
+
     if (!('placeholder' in this.element)) {
         throw new Error('"placeholder" attribute of passing element is not supported');
     }
+
     this.elementEventListeners = [];
     this.originalPlaceholder = this.element.getAttribute('placeholder') || '';
-    this.strings = this._filterStrings(options.strings || []);
-    this.charDelay = options.charDelay >= 0 ? options.charDelay : 100;
-    this.stringDelay = options.stringDelay >= 0 ? options.stringDelay : 1000;
-    this.loop = options.loop >= 0 ? options.loop : 0;
-    this.cursor = typeof options.cursor === 'string' ? options.cursor : '|';
+
+    this.loop = getNonNegativeNumber(options.loop, 0);
+    this.charDelay = getNonNegativeNumber(options.charDelay, 100);
+    this.stringDelay = getNonNegativeNumber(options.stringDelay, 1000);
+    this.newlineDelay = getNonNegativeNumber(options.newlineDelay, this.stringDelay);
+    this.backspaceDelay = getNonNegativeNumber(options.backspaceDelay, this.charDelay);
+
     this.autoStart = options.autoStart;
+    this.clearAction = options.clearAction;
     this.focusAction = options.focusAction;
     if ([ActionType.STOP, ActionType.PAUSE].indexOf(options.blurAction) >= 0) {
         this.blurAction = options.blurAction;
     }
-    this.clearAction = options.clearAction;
+
+    var specialDelayRegex = options.specialDelayRegex instanceof RegExp ? options.specialDelayRegex : /\^(\d+)/,
+        filterResult = filterStrings(
+            options.strings || [],
+            specialDelayRegex,
+            this.newlineDelay
+        );
+    this.strings = filterResult.strings;
+    this.stringSpecs = filterResult.stringSpecs;
+    this.cursor = typeof options.cursor === 'string' ? options.cursor : '|';
+
     this.dispatcher = new EventDispatcher();
+
     this._initState();
     this._bootstrap();
 }
@@ -120,12 +194,10 @@ Placeholder.prototype.start = function (forceRestart) {
 };
 
 Placeholder.prototype.stop = function () {
-    if (this.state.id !== State.STOPPED) {
-        this._clearTimeout();
-        this._initState();
-        this._dispatchEvent(EventType.STOP);
-    }
+    this._clearTimeout();
+    this._initState();
     this._resetPlaceholder();
+    this._dispatchEvent(EventType.STOP);
 };
 
 Placeholder.prototype.pause = function () {
@@ -153,13 +225,13 @@ Placeholder.prototype.destroy = function () {
 };
 
 Placeholder.prototype._start = function () {
-    this._next();
     this._dispatchEvent(EventType.START);
+    this._next();
 };
 
 Placeholder.prototype._resume = function () {
-    this._next();
     this._dispatchEvent(EventType.RESUME);
+    this._next();
 };
 
 Placeholder.prototype._resetPlaceholder = function () {
@@ -177,7 +249,7 @@ Placeholder.prototype._initState = function () {
     };
 };
 
-Placeholder.prototype._extractDispatchingParams = function () {
+Placeholder.prototype._extractNextParams = function () {
     var next = this.state.next;
     return next ? {
         str: next.str,
@@ -257,35 +329,76 @@ Placeholder.prototype._clearTimeout = function () {
     }
 };
 
-Placeholder.prototype._filterStrings = function (strings) {
-    var r = [],
-        s, i;
-    for (i = 0; i < strings.length; i += 1) {
-        s = strings[i];
-        if (s && s.length) {
-            r.push(s);
-        }
-    }
-    return r;
-};
-
-Placeholder.prototype._transformString = function (s) {
-    var r = '',
-        c, i;
-    for (i = 0; i < s.length; i += 1) {
-        c = s[i];
-        if (c === '\b' && r.length) {
-            r = r.substring(0, r.length - 1);
-        }
-        else {
-            r += c;
-        }
-    }
-    return r;
-};
-
 Placeholder.prototype._dispatchEvent = function (event) {
-    this.dispatcher.dispatchEvent(event, this._extractDispatchingParams());
+    this.dispatcher.dispatchEvent(event, this._extractNextParams());
+};
+
+Placeholder.prototype._predictNext = function () {
+    var state = this.state;
+    if (!state.next) {
+        var events = [],
+            isStop = false,
+            isEndLoop = false,
+            isEndString = false,
+            loop = state.loop,
+            charIndex = state.charIndex,
+            stringIndex = state.stringIndex,
+            strings = this.strings,
+            str = strings[stringIndex],
+            specialDelay = this.stringSpecs[stringIndex][charIndex],
+            appySpecialDelay = specialDelay !== undefined,
+            delay = appySpecialDelay ? specialDelay : this.charDelay;
+
+        if (charIndex === 0) {
+            if (stringIndex === 0) {
+                events.push(EventType.BEGIN_LOOP);
+                if (this.loop > 0 && loop >= this.loop) {
+                    isStop = true;
+                    if (!appySpecialDelay) {
+                        delay = this.stringDelay;
+                    }
+                }
+            }
+
+            if (!appySpecialDelay && (stringIndex > 0 || loop >= 1)) {
+                delay = this.stringDelay;
+            }
+
+            events.push(EventType.BEGIN_STRING);
+        }
+        else if (charIndex === str.length - 1) {
+            isEndString = true;
+            events.push(EventType.END_STRING);
+            if (stringIndex === strings.length - 1) {
+                events.push(EventType.END_LOOP);
+                isEndLoop = true;
+            }
+        }
+
+        if (!appySpecialDelay && str[charIndex] === '\b') {
+            delay = this.backspaceDelay;
+        }
+
+        state.next = {
+            str: transformString(str.substring(0, charIndex + 1) + (isEndString ? '' : this.cursor)),
+            events: events,
+            isStop: isStop,
+            isEndLoop: isEndLoop,
+            strings: strings,
+            index: stringIndex,
+            loop: loop,
+            delay: delay
+        };
+
+        state.charIndex += 1;
+        if (state.charIndex >= str.length) {
+            state.charIndex = 0;
+            state.stringIndex += 1;
+            if (state.stringIndex >= strings.length) {
+                state.stringIndex = 0;
+            }
+        }
+    }
 };
 
 Placeholder.prototype._next = function () {
@@ -294,67 +407,32 @@ Placeholder.prototype._next = function () {
     }
     this._clearTimeout();
 
+    this._predictNext();
+
     var self = this,
-        isEndLoop = false,
-        isEndString = false,
         state = self.state;
-
-    if (!state.next) {
-        var events = [],
-            delay = this.charDelay,
-            str = this.strings[state.stringIndex];
-        if (state.charIndex === 0) {
-            if (state.stringIndex === 0) {
-                events.push(EventType.BEGIN_LOOP);
-                if (this.loop > 0 && state.loop >= this.loop) {
-                    return this.stop();
-                }
-            }
-            if (state.stringIndex > 0 || state.loop >= 1) {
-                delay = this.stringDelay;
-            }
-            events.push(EventType.BEGIN_STRING);
-        }
-        else if (state.charIndex === str.length - 1) {
-            isEndString = true;
-            events.push(EventType.END_STRING);
-            if (state.stringIndex === this.strings.length - 1) {
-                events.push(EventType.END_LOOP);
-                isEndLoop = true;
-            }
-        }
-
-        state.next = {
-            str: this._transformString(str.substring(0, state.charIndex + 1) + (isEndString ? '' : this.cursor)),
-            events: events,
-            strings: this.strings,
-            index: state.stringIndex,
-            loop: state.loop,
-            delay: delay
-        };
-        state.charIndex += 1;
-        if (state.charIndex >= str.length) {
-            state.charIndex = 0;
-            state.stringIndex += 1;
-            if (state.stringIndex >= this.strings.length) {
-                state.stringIndex = 0;
-            }
-        }
-    }
 
     state.id = State.PLAYING;
     state.timeoutId = setTimeout(function () {
         var next = state.next;
         if (next) {
-            if (next.events.length > 0) {
+            var events = next.events;
+
+            if (next.isStop) {
+                return self.stop();
+            }
+
+            if (events.length > 0) {
                 var i;
-                for (i = 0; i < next.events.length; i += 1) {
-                    self._dispatchEvent(next.events[i]);
+                for (i = 0; i < events.length; i += 1) {
+                    self._dispatchEvent(events[i]);
                 }
             }
-            if (isEndLoop) {
+
+            if (next.isEndLoop) {
                 state.loop += 1;
             }
+
             self.element.setAttribute('placeholder', next.str);
             state.next = null;
             self._next();

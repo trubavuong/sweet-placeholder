@@ -5,13 +5,25 @@ Imagine you create a form and you want visitors to fill them with correct input,
 
 Yeah, of course, there are at least three options such as label, "help text" above/below input and placeholder inside input. These options are great and simple, but if the text is long, your form may be verbose and *...boring*.
 
-***Placeholder Guide*** is a tiny library to make your form a lot more fun. Animated, describe many and many sentences by typing effect. Just relax and give it a try!
+***Naughty Placeholder*** is a small library to make your form a lot more fun. Animated, describe many and many sentences by typing effect. Just relax and give it a try!
+
+# Features
+
+1. **Typing effect**. Provide rich and useful features:
+    - Speed controllable by many delay types.
+    - Backspace animation.
+    - Multi-lines animation in textarea.
+    - Lifecycle controllable: create, start, pause, resume, stop, destroy and loop.
+    - Many trigger types for actions on input: focus, lose focus (blur), clear.
+    - Many event types.
+2. **Cross-browser**. Support all modern browsers.
+3. **Small**. Minification version < 6KB, gzip ~2KB.
 
 # Demo
 You can self exploration this library via demo pages.
 
-1. [Placeholder Guide with &lt;input&gt;][demo/page/input]
-2. [Placeholder Guide with &lt;textarea&gt;][demo/page/textarea]
+1. [Naughty Placeholder with &lt;input&gt;][demo/page/input]
+2. [Naughty Placeholder with &lt;textarea&gt;][demo/page/textarea]
 
 # Usage
 
@@ -109,7 +121,7 @@ If you don't want to use this placeholder anymore, you can destroy it, release a
 
 ## Action types
 
-***Placeholder Guide*** supports actions on focus, blur and clear input event.
+***Naughty Placeholder*** supports actions on focus, blur and clear input event.
 
 You can use "Placeholder.ActionType" to view constants:
 
@@ -122,7 +134,7 @@ As easy as a pie!
 
 ## Event types
 
-***Placeholder Guide*** supports a number of events too.
+***Naughty Placeholder*** supports a number of events too.
 
 You can use "Placeholder.EventType" to view constants:
 
