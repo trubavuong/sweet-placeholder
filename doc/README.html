@@ -1055,29 +1055,43 @@ body .markdown-body
 .codehilite .vi{color:teal}
 .codehilite .il{color:#009999}
 .codehilite .gc{color:#999;background-color:#EAF2F5}
-</style><title>README</title></head><body><article class="markdown-body"><p><center><img alt="Demo" src="./img/demo.gif" title="Demo" /></center></p>
+</style><title>README</title></head><body><article class="markdown-body"><p><img alt="Demo" src="./img/demo.gif" title="Demo" /></p>
 <h1 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link"></a></h1>
 <p>Imagine you create a form and you want visitors to fill them with correct input, for example, <em>username</em> must be a string whose length is between 8 and 16, only letters (a-z), numbers (0-9) are allowed. How would you guide your visitors?</p>
 <p>Yeah, of course, there are at least three options such as label, &ldquo;help text&rdquo; above/below input and placeholder inside input. These options are great and simple, but if the text is long, your form may be verbose and <em>&hellip;boring</em>.</p>
-<p><strong><em>Placeholder Guide</em></strong> is a tiny library to make your form a lot more fun. Animated, describe many and many sentences by typing effect. Just relax and give it a try!</p>
+<p><strong><em>Naughty Placeholder</em></strong> is a small library to make your form a lot more fun. Animated, describe many and many sentences by typing effect. Just relax and give it a try!</p>
+<h1 id="features">Features<a class="headerlink" href="#features" title="Permanent link"></a></h1>
+<ol>
+<li><strong>Typing effect</strong>.<ul>
+<li>Speed controllable by many delay types.</li>
+<li>Backspace animation.</li>
+<li>Multi-lines animation in textarea.</li>
+<li>Lifecycle controllable: create, start, pause, resume, stop, destroy and loop.</li>
+<li>Many trigger types for actions on input: focus, lose focus (blur), clear.</li>
+<li>Many event types.</li>
+</ul>
+</li>
+<li><strong>Cross-browser</strong>. Support all modern browsers.</li>
+<li><strong>Small</strong>. Minification version &lt; 6KB, gzip ~2KB.</li>
+</ol>
 <h1 id="demo">Demo<a class="headerlink" href="#demo" title="Permanent link"></a></h1>
 <p>You can self exploration this library via demo pages.</p>
 <ol>
-<li><a href="../sweet-placeholder/demo/text-input.html">Placeholder Guide with &lt;input&gt;</a></li>
-<li><a href="../sweet-placeholder/demo/textarea.html">Placeholder Guide with &lt;textarea&gt;</a></li>
+<li><a href="../naughty-placeholder/demo/text-input.html">Naughty Placeholder with &lt;input&gt;</a></li>
+<li><a href="../naughty-placeholder/demo/textarea.html">Naughty Placeholder with &lt;textarea&gt;</a></li>
 </ol>
 <h1 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link"></a></h1>
 <h2 id="integrate-library-to-your-html-page">Integrate library to your HTML page<a class="headerlink" href="#integrate-library-to-your-html-page" title="Permanent link"></a></h2>
-<div class="codehilite"><pre>&lt;script src=&quot;/path/to/sweet-placeholder.js&quot;&gt;&lt;/script&gt;
+<div class="codehilite"><pre>&lt;script src=&quot;/path/to/naughty-placeholder.js&quot;&gt;&lt;/script&gt;
 ...OR
-&lt;script src=&quot;/path/to/sweet-placeholder.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;/path/to/naughty-placeholder.min.js&quot;&gt;&lt;/script&gt;
 </pre></div>
 
 
-<p>Normally, javascript files are distributed at <em>sweet-placeholder/sweet-placeholder/js/</em> directory.</p>
+<p>Normally, javascript files are distributed at <code>naughty-placeholder/naughty-placeholder/js/</code> directory.</p>
 <h2 id="create-placeholder">Create placeholder<a class="headerlink" href="#create-placeholder" title="Permanent link"></a></h2>
 <p>Before using any operations, you must create a placeholder instance. It looks like:</p>
-<div class="codehilite"><pre>var placeholder = Placeholder.create({
+<div class="codehilite"><pre>var placeholder = NaughtyPlaceholder.create({
     // input or textarea element
     element: document.getElementById(&#39;id&#39;),
 
@@ -1105,27 +1119,117 @@ body .markdown-body
     // delay time between strings
     stringDelay: 1000,
 
+    // delay time between lines
+    newlineDelay: 1000,
+
+    // delay time to type &#39;\b&#39; (backspace) character
+    backspaceDelay: 100,
+
+    // customizable manual delay pattern
+    manualDelayRegex: /\^(\d+)/,
+
     // number of loops, 0 is forver
     loop: 0,
 
     // action on input focus
     // support: &#39;start&#39;, &#39;resume&#39;, &#39;pause&#39;, &#39;stop&#39;
-    // see below to get more details about &#39;Placeholder.ActionType&#39;
+    // see below to get more details about &#39;NaughtyPlaceholder.ActionType&#39;
     focusAction: &#39;resume&#39;,
 
     // action on input blur (lose focus)
     // support: &#39;pause&#39;, &#39;stop&#39;
-    // see below to get more details about &#39;Placeholder.ActionType&#39;
+    // see below to get more details about &#39;NaughtyPlaceholder.ActionType&#39;
     blurAction: &#39;pause&#39;,
 
     // action on input clear (empty)
     // support: &#39;start&#39;, &#39;resume&#39;, &#39;pause&#39;, &#39;stop&#39;
-    // see below to get more details about &#39;Placeholder.ActionType&#39;
+    // see below to get more details about &#39;NaughtyPlaceholder.ActionType&#39;
     clearAction: &#39;start&#39;,
 });
 </pre></div>
 
 
+<p>Options in details:</p>
+<ul>
+<li>
+<p><code>element</code> Element (required).</p>
+<p>Target element to deploy placeholder animation. It should be an <code>&lt;input&gt;</code> or <code>&lt;textarea&gt;</code>.</p>
+</li>
+<li>
+<p><code>charDelay</code> Integer (optional). Default: <code>100</code></p>
+<p>Delay time between characters.</p>
+</li>
+<li>
+<p><code>stringDelay</code> Integer (optional). Default: <code>1000</code></p>
+<p>Delay time between strings.</p>
+</li>
+<li>
+<p><code>backspaceDelay</code> Integer (optional). Default: equal to <code>charDelay</code></p>
+<p>Delay time to type <code>'\b'</code> (backspace) character (fake deletion effect).</p>
+</li>
+<li>
+<p><code>newlineDelay</code> Integer (optional). Default: equal to <code>stringDelay</code></p>
+<p>Delay time between lines in a string (multi-lines in textarea).</p>
+</li>
+<li>
+<p><code>strings</code> Array<String> (required).</p>
+<p>List of strings to typing. Each string can be a single line of text (both for <code>&lt;input&gt;</code> and <code>&lt;textarea&gt;</code>) or a multi-lines of text (works correctly with <code>&lt;textarea&gt;</code>).</p>
+<p><strong>Tips &amp; tricks:</strong></p>
+<ul>
+<li>
+<p><code>Fake deletion effect</code>: use <code>'\b'</code> character to specify number of deletion characters. </p>
+<p>For example, statement below can be used to type <code>I like</code>, then delete whole <code>like</code> word then type <code>love</code> to become <code>I love</code>:</p>
+<div class="codehilite"><pre>{
+    strings: [&#39;I like\b\b\b\blove&#39;],
+    ...
+}
+</pre></div>
+
+
+</li>
+<li>
+<p><code>Manual delay</code>: in most cases, same delay between characters is convenient and good enough. But how would you do if you want to break the <em>normal</em>? Easy! Use <code>^delayTime</code> at any position in a string.</p>
+<p>For example, statement below can be used to type <code>I think</code> in normal speed (100 ms delay), wait in 3 seconds, then type <code>it's good</code> to become <code>I think it's good</code>:</p>
+<div class="codehilite"><pre>{
+    strings: [&quot;I think ^3000it&#39;s good&quot;],
+    ...
+}
+</pre></div>
+
+
+<p>You can change <code>^delayTime</code> pattern to detect manual delay time if you want. See <code>manualDelayRegex</code> option below.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>manualDelayRegex</code> RegExp (optional). Default: <code>/\^(/d+)/</code></p>
+<p>Regular expression to detect manual delay time. It must contain digits group <code>(/d+)</code>.</p>
+</li>
+<li>
+<p><code>cursor</code> String (optional). Default: <code>|</code></p>
+<p>Cursor character to show. If you want to hide it while typing, just use empty string.</p>
+</li>
+<li>
+<p><code>autoStart</code> Boolean (optional). Default: <code>false</code></p>
+<p>Start animation immediately when placeholder instance is created or not.</p>
+</li>
+<li>
+<p><code>loop</code> Integer (optional). Default: <code>0</code></p>
+<p>Number of animation loops. If you pass 0, animation runs forever.</p>
+</li>
+<li>
+<p><code>focusAction</code> String (optional). Default: <code>null</code></p>
+<p>Trigger action when input has been focused. See <code>NaughtyPlaceholder.ActionType</code> below to get more details.</p>
+</li>
+<li>
+<p><code>blurAction</code> String (optional). Default: <code>null</code></p>
+<p>Trigger action when input has been lost focus. See <code>NaughtyPlaceholder.ActionType</code> below to get more details.</p>
+</li>
+<li>
+<p><code>clearAction</code> String (optional). Default: <code>null</code></p>
+<p>Trigger action when input has been empty. See <code>NaughtyPlaceholder.ActionType</code> below to get more details.</p>
+</li>
+</ul>
 <h2 id="basic-workflow">Basic workflow<a class="headerlink" href="#basic-workflow" title="Permanent link"></a></h2>
 <p>After creating a placeholder, you can use it to start/stop/pause/resume placeholder animation.</p>
 <h3 id="start-animation">Start animation<a class="headerlink" href="#start-animation" title="Permanent link"></a></h3>
@@ -1136,14 +1240,14 @@ body .markdown-body
 <p>Note:</p>
 <ul>
 <li>
-<p>forceRestart: boolean.</p>
+<p><code>forceRestart</code> Boolean.</p>
 <ul>
-<li>If it&rsquo;s omitted, or false, placeholder tries to <strong>resume</strong> animation if it&rsquo;s been paused before.</li>
+<li>If it&rsquo;s omitted, or false, placeholder tries to <strong><em>resume</em></strong> animation if it&rsquo;s been paused before.</li>
 <li>If it&rsquo;s true, placeholder restarts animation.</li>
 </ul>
 </li>
 <li>
-<p>If &ldquo;autoStart&rdquo; is true, the placeholder animation will be started immediately after creation without any calls.</p>
+<p>If <code>autoStart = true</code>, the placeholder animation will be started immediately after creation without any calls.</p>
 </li>
 </ul>
 <h3 id="stop-animation">Stop animation<a class="headerlink" href="#stop-animation" title="Permanent link"></a></h3>
@@ -1167,48 +1271,65 @@ body .markdown-body
 </pre></div>
 
 
-<h2 id="action-types">Action types<a class="headerlink" href="#action-types" title="Permanent link"></a></h2>
-<p><strong><em>Placeholder Guide</em></strong> supports actions on focus, blur and clear input event.</p>
-<p>You can use &ldquo;Placeholder.ActionType&rdquo; to view constants:</p>
+<h2 id="actions">Actions<a class="headerlink" href="#actions" title="Permanent link"></a></h2>
+<p><strong><em>Naughty Placeholder</em></strong> supports actions on focus, blur and clear input event.</p>
+<p>You can use <code>NaughtyPlaceholder.ActionType</code> to view constants:</p>
 <ul>
-<li>start: start animation</li>
-<li>resume: resume animation</li>
-<li>pause: pause animation</li>
-<li>stop: stop animation</li>
+<li><code>'start'</code> start animation</li>
+<li><code>'resume'</code> resume animation</li>
+<li><code>'pause'</code> pause animation</li>
+<li><code>'stop'</code> stop animation</li>
 </ul>
-<p>As easy as a pie!</p>
-<h2 id="event-types">Event types<a class="headerlink" href="#event-types" title="Permanent link"></a></h2>
-<p><strong><em>Placeholder Guide</em></strong> supports a number of events too.</p>
-<p>You can use &ldquo;Placeholder.EventType&rdquo; to view constants:</p>
+<h2 id="events">Events<a class="headerlink" href="#events" title="Permanent link"></a></h2>
+<p><strong><em>Naughty Placeholder</em></strong> supports a number of events too.</p>
+<p>You can use <code>NaughtyPlaceholder.EventType</code> to view constants:</p>
 <ul>
-<li>start: when start animation</li>
-<li>stop: when stop animation</li>
-<li>pause: when pause animation</li>
-<li>resume: when resume animation</li>
-<li>begin-string: when begin typing string</li>
-<li>end-string: when end of typing string</li>
-<li>begin-loop: when start a loop</li>
-<li>end-loop: when end of a loop</li>
-<li>destroy: when destroy placeholder</li>
+<li><code>'start'</code> when start animation</li>
+<li><code>'stop'</code> when stop animation</li>
+<li><code>'pause'</code> when pause animation</li>
+<li><code>'resume'</code> when resume animation</li>
+<li><code>'begin-string'</code> when begin typing string</li>
+<li><code>'end-string'</code> when end of typing string</li>
+<li><code>'begin-loop'</code> when start a loop</li>
+<li><code>'end-loop'</code> when end of a loop</li>
+<li><code>'destroy'</code> when destroy placeholder</li>
 </ul>
-<p>For example, if you want to listen &ldquo;begin-loop&rdquo; event:</p>
+<p>For example, if you want to listen <code>begin-loop (NaughtyPlaceholder.EventType.BEGIN_LOOP)</code> event:</p>
 <div class="codehilite"><pre>placeholder.addEventListener(&#39;begin-loop&#39;, function (args) {
     // do something
 });
 </pre></div>
 
 
-<p>&ldquo;args&rdquo; is an object:</p>
+<p><code>args</code> is an object:</p>
 <ul>
-<li>str: next string to type</li>
-<li>strings: all of strings</li>
-<li>index: next index of string in strings</li>
-<li>loop: current loop number</li>
-<li>delay: next delay to type</li>
+<li><code>str</code> next string to type</li>
+<li><code>strings</code> all of strings</li>
+<li><code>index</code> next index of string in strings</li>
+<li><code>loop</code> current loop number</li>
+<li><code>delay</code> next delay to type</li>
 </ul>
-<p>When you don&rsquo;t want to listen events anymore, you must call:</p>
+<p>When you don&rsquo;t want to listen an event anymore, you must call:</p>
 <div class="codehilite"><pre>placeholder.removeEventListener(eventName, eventHandler);
 
-// Note: &quot;eventHandler&quot; must be same reference as second argument when you call:
-//     placeholder.addEventListener(eventName, eventHanlder)
-</pre></div></article></body></html>
+// Note: &quot;eventHandler&quot; must be same reference as second argument when you had called before:
+placeholder.addEventListener(eventName, eventHanlder)
+</pre></div>
+
+
+<h2 id="change-app-endpoint">Change app endpoint<a class="headerlink" href="#change-app-endpoint" title="Permanent link"></a></h2>
+<p>Currently, my library endpoint is <code>NaughtyPlaceholder</code>. But if you want to use an other name, it&rsquo;s quite simple.</p>
+<p>Locate <code>naughty-placeholder.js</code> file, then replace line:</p>
+<div class="codehilite"><pre>var APP_NAME = &#39;NaughtyPlaceholder&#39;;
+</pre></div>
+
+
+<p>by any name making you feel comfortable, such as <code>YourPlaceholder</code>:</p>
+<div class="codehilite"><pre>var APP_NAME = &#39;YourPlaceholder&#39;;
+</pre></div>
+
+
+<p>Now you can use <code>YourPlaceholder.create(options)</code>, <code>YourPlaceholder.ActionType</code>, <code>YourPlaceholder.EventType</code> in your application.</p>
+<p>For minification version, you can use same technique in <code>naughty-placeholder.min.js</code> file or build it using above <code>naughty-placeholder.js</code> file by any javascript minifier tool.</p>
+<h1 id="feedback">Feedback<a class="headerlink" href="#feedback" title="Permanent link"></a></h1>
+<p>Please feel free to send me feedback to my personal email: <code>vincejonesjunior@gmail.com</code>. Thank you all, you guys!</p></article></body></html>

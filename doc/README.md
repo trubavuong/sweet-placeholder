@@ -29,17 +29,17 @@ You can self exploration this library via demo pages.
 
 ## Integrate library to your HTML page
     
-    <script src="/path/to/sweet-placeholder.js"></script>
+    <script src="/path/to/naughty-placeholder.js"></script>
     ...OR
-    <script src="/path/to/sweet-placeholder.min.js"></script>
+    <script src="/path/to/naughty-placeholder.min.js"></script>
 
-Normally, javascript files are distributed at `sweet-placeholder/sweet-placeholder/js/` directory.
+Normally, javascript files are distributed at `naughty-placeholder/naughty-placeholder/js/` directory.
 
 ## Create placeholder
 
 Before using any operations, you must create a placeholder instance. It looks like:
 
-    var placeholder = Placeholder.create({
+    var placeholder = NaughtyPlaceholder.create({
         // input or textarea element
         element: document.getElementById('id'),
         
@@ -81,17 +81,17 @@ Before using any operations, you must create a placeholder instance. It looks li
         
         // action on input focus
         // support: 'start', 'resume', 'pause', 'stop'
-        // see below to get more details about 'Placeholder.ActionType'
+        // see below to get more details about 'NaughtyPlaceholder.ActionType'
         focusAction: 'resume',
         
         // action on input blur (lose focus)
         // support: 'pause', 'stop'
-        // see below to get more details about 'Placeholder.ActionType'
+        // see below to get more details about 'NaughtyPlaceholder.ActionType'
         blurAction: 'pause',
     
         // action on input clear (empty)
         // support: 'start', 'resume', 'pause', 'stop'
-        // see below to get more details about 'Placeholder.ActionType'
+        // see below to get more details about 'NaughtyPlaceholder.ActionType'
         clearAction: 'start',
     });
 
@@ -161,15 +161,15 @@ Options in details:
 
 - `focusAction` String (optional). Default: `null`
     
-    Trigger action when input has been focused. See `Placeholder.ActionType` below to get more details.
+    Trigger action when input has been focused. See `NaughtyPlaceholder.ActionType` below to get more details.
 
 - `blurAction` String (optional). Default: `null`
     
-    Trigger action when input has been lost focus. See `Placeholder.ActionType` below to get more details.
+    Trigger action when input has been lost focus. See `NaughtyPlaceholder.ActionType` below to get more details.
 
 - `clearAction` String (optional). Default: `null`
     
-    Trigger action when input has been empty. See `Placeholder.ActionType` below to get more details.
+    Trigger action when input has been empty. See `NaughtyPlaceholder.ActionType` below to get more details.
 
 ## Basic workflow
 After creating a placeholder, you can use it to start/stop/pause/resume placeholder animation.
@@ -208,7 +208,7 @@ If you don't want to use this placeholder anymore, you can destroy it, release a
 
 ***Naughty Placeholder*** supports actions on focus, blur and clear input event.
 
-You can use `Placeholder.ActionType` to view constants:
+You can use `NaughtyPlaceholder.ActionType` to view constants:
 
 - `'start'` start animation
 - `'resume'` resume animation
@@ -219,7 +219,7 @@ You can use `Placeholder.ActionType` to view constants:
 
 ***Naughty Placeholder*** supports a number of events too.
 
-You can use `Placeholder.EventType` to view constants:
+You can use `NaughtyPlaceholder.EventType` to view constants:
 
 - `'start'` when start animation
 - `'stop'` when stop animation
@@ -231,7 +231,7 @@ You can use `Placeholder.EventType` to view constants:
 - `'end-loop'` when end of a loop
 - `'destroy'` when destroy placeholder
 
-For example, if you want to listen `begin-loop (Placeholder.EventType.BEGIN_LOOP)` event:
+For example, if you want to listen `begin-loop (NaughtyPlaceholder.EventType.BEGIN_LOOP)` event:
 
     placeholder.addEventListener('begin-loop', function (args) {
         // do something
@@ -254,11 +254,11 @@ When you don't want to listen an event anymore, you must call:
 
 ## Change app endpoint
 
-Currently, my library endpoint is `Placeholder`. But if you want to use an other name, it's quite simple.
+Currently, my library endpoint is `NaughtyPlaceholder`. But if you want to use an other name, it's quite simple.
 
-Locate `sweet-placeholder.js` file, then replace line:
+Locate `naughty-placeholder.js` file, then replace line:
 
-    var APP_NAME = 'Placeholder';
+    var APP_NAME = 'NaughtyPlaceholder';
 
 by any name making you feel comfortable, such as `YourPlaceholder`:
 
@@ -266,12 +266,12 @@ by any name making you feel comfortable, such as `YourPlaceholder`:
 
 Now you can use `YourPlaceholder.create(options)`, `YourPlaceholder.ActionType`, `YourPlaceholder.EventType` in your application.
 
-For minification version, you can use same technique in `sweet-placeholder.min.js` file or build it using above `sweet-placeholder.js` file by any javascript minifier tool.
+For minification version, you can use same technique in `naughty-placeholder.min.js` file or build it using above `naughty-placeholder.js` file by any javascript minifier tool.
 
 # Feedback
 
 Please feel free to send me feedback to my personal email: `vincejonesjunior@gmail.com`. Thank you all, you guys!
 
 [demo/gif]: img/demo.gif "Demo"
-[demo/page/input]: ../sweet-placeholder/demo/text-input.html
-[demo/page/textarea]: ../sweet-placeholder/demo/textarea.html
+[demo/page/input]: ../naughty-placeholder/demo/text-input.html
+[demo/page/textarea]: ../naughty-placeholder/demo/textarea.html

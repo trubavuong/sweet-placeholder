@@ -1,5 +1,5 @@
 // Change app name to anything to use as global entry point
-var APP_NAME = 'Placeholder';
+var APP_NAME = 'NaughtyPlaceholder';
 
 function EventDispatcher() {
     this.events = {};
