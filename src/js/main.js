@@ -118,6 +118,10 @@ function getNonNegativeNumber(delay, defaultDelay) {
     return delay >= 0 ? delay : defaultDelay;
 }
 
+function setPlaceholder(element, string) {
+    element.setAttribute('placeholder', string);
+}
+
 function Placeholder(options) {
     this.element = options.element;
     if (!(this.element instanceof Element)) {
@@ -231,11 +235,12 @@ Placeholder.prototype._start = function () {
 
 Placeholder.prototype._resume = function () {
     this._dispatchEvent(EventType.RESUME);
+    setPlaceholder(this.element, this.state.lastStr || '');
     this._next();
 };
 
 Placeholder.prototype._resetPlaceholder = function () {
-    this.element.setAttribute('placeholder', this.originalPlaceholder);
+    setPlaceholder(this.element, this.originalPlaceholder);
 };
 
 Placeholder.prototype._initState = function () {
@@ -433,7 +438,8 @@ Placeholder.prototype._next = function () {
                 state.loop += 1;
             }
 
-            self.element.setAttribute('placeholder', next.str);
+            setPlaceholder(self.element, next.str);
+            state.lastStr = next.str;
             state.next = null;
             self._next();
         }
