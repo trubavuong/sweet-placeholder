@@ -60,7 +60,7 @@ var ActionType = {
         PAUSED: 2
     };
 
-function filterStrings(rawStrings, specialDelayRegex, newlineDelay) {
+function filterStrings(rawStrings, manualDelayRegex, newlineDelay) {
     var strings = [],
         stringSpecs = [],
         stringSpec,
@@ -76,8 +76,8 @@ function filterStrings(rawStrings, specialDelayRegex, newlineDelay) {
         if (string && string.length > 0) {
             tmpString = string;
             stringSpec = {};
-            while ((matches = tmpString.match(specialDelayRegex))) {
-                matchIndex = tmpString.search(specialDelayRegex);
+            while ((matches = tmpString.match(manualDelayRegex))) {
+                matchIndex = tmpString.search(manualDelayRegex);
                 stringSpec[matchIndex] = parseInt(matches[1], 10);
                 tmpString = tmpString.replace(matches[0], '');
             }
@@ -144,10 +144,10 @@ function Placeholder(options) {
         this.blurAction = options.blurAction;
     }
 
-    var specialDelayRegex = options.specialDelayRegex instanceof RegExp ? options.specialDelayRegex : /\^(\d+)/,
+    var manualDelayRegex = options.manualDelayRegex instanceof RegExp ? options.manualDelayRegex : /\^(\d+)/,
         filterResult = filterStrings(
             options.strings || [],
-            specialDelayRegex,
+            manualDelayRegex,
             this.newlineDelay
         );
     this.strings = filterResult.strings;
