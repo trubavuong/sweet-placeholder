@@ -1,4 +1,4 @@
-<center>![Demo][demo/gif]</center>
+![Demo][demo/gif]
 
 # Introduction
 Imagine you create a form and you want visitors to fill them with correct input, for example, *username* must be a string whose length is between 8 and 16, only letters (a-z), numbers (0-9) are allowed. How would you guide your visitors?
@@ -9,7 +9,7 @@ Yeah, of course, there are at least three options such as label, "help text" abo
 
 # Features
 
-1. **Typing effect**. Provide rich and useful features:
+1. **Typing effect**.
     - Speed controllable by many delay types.
     - Backspace animation.
     - Multi-lines animation in textarea.
@@ -33,7 +33,7 @@ You can self exploration this library via demo pages.
     ...OR
     <script src="/path/to/sweet-placeholder.min.js"></script>
 
-Normally, javascript files are distributed at **sweet-placeholder/sweet-placeholder/js/** directory.
+Normally, javascript files are distributed at `sweet-placeholder/sweet-placeholder/js/` directory.
 
 ## Create placeholder
 
@@ -67,6 +67,15 @@ Before using any operations, you must create a placeholder instance. It looks li
         // delay time between strings
         stringDelay: 1000,
         
+        // delay time between lines
+        newlineDelay: 1000,
+        
+        // delay time to type '\b' (backspace) character
+        backspaceDelay: 100,
+    
+        // customizable manual delay pattern
+        manualDelayRegex: /\^(\d+)/,
+        
         // number of loops, 0 is forver
         loop: 0,
         
@@ -86,6 +95,82 @@ Before using any operations, you must create a placeholder instance. It looks li
         clearAction: 'start',
     });
 
+Options in details:
+
+- `element` Element (required).
+    
+    Target element to deploy placeholder animation. It should be an `<input>` or `<textarea>`.
+
+- `charDelay` Integer (optional). Default: `100`
+    
+    Delay time between characters.
+
+- `stringDelay` Integer (optional). Default: `1000`
+    
+    Delay time between strings.
+
+- `backspaceDelay` Integer (optional). Default: equal to `charDelay`
+    
+    Delay time to type `'\b'` (backspace) character (fake deletion effect).
+
+- `newlineDelay` Integer (optional). Default: equal to `stringDelay`
+    
+    Delay time between lines in a string (multi-lines in textarea).
+
+- `strings` Array<String> (required).
+    
+    List of strings to typing. Each string can be a single line of text (both for `<input>` and `<textarea>`) or a multi-lines of text (works correctly with `<textarea>`).
+
+    **Tips & tricks:**
+
+    - `Fake deletion effect`: use `'\b'` character to specify number of deletion characters. 
+    
+        For example, statement below can be used to type `I like`, then delete whole `like` word then type `love` to become `I love`:
+    
+            {
+                strings: ['I like\b\b\b\blove'],
+                ...
+            }
+
+    - `Manual delay`: in most cases, same delay between characters is convenient and good enough. But how would you do if you want to break the *normal*? Easy! Use `^delayTime` at any position in a string.
+        
+        For example, statement below can be used to type `I think ` in normal speed (100 ms delay), wait in 3 seconds, then type `it's good` to become `I think it's good`:
+
+            {
+                strings: ["I think ^3000it's good"],
+                ...
+            }
+
+        You can change `^delayTime` pattern to detect manual delay time if you want. See `manualDelayRegex` option below.
+
+- `manualDelayRegex` RegExp (optional). Default: `/\^(/d+)/`
+    
+    Regular expression to detect manual delay time. It must contain digits group `(/d+)`.
+
+- `cursor` String (optional). Default: `|`
+    
+    Cursor character to show. If you want to hide it while typing, just use empty string.
+
+- `autoStart` Boolean (optional). Default: `false`
+    
+    Start animation immediately when placeholder instance is created or not.
+
+- `loop` Integer (optional). Default: `0`
+    
+    Number of animation loops. If you pass 0, animation runs forever.
+
+- `focusAction` String (optional). Default: `null`
+    
+    Trigger action when input has been focused. See `Placeholder.ActionType` below to get more details.
+
+- `blurAction` String (optional). Default: `null`
+    
+    Trigger action when input has been lost focus. See `Placeholder.ActionType` below to get more details.
+
+- `clearAction` String (optional). Default: `null`
+    
+    Trigger action when input has been empty. See `Placeholder.ActionType` below to get more details.
+
 ## Basic workflow
 After creating a placeholder, you can use it to start/stop/pause/resume placeholder animation.
 
@@ -95,11 +180,11 @@ After creating a placeholder, you can use it to start/stop/pause/resume placehol
 
 Note:
 
-- forceRestart: boolean.
-    + If it's omitted, or false, placeholder tries to **resume** animation if it's been paused before.
+- `forceRestart` Boolean.
+    + If it's omitted, or false, placeholder tries to ***resume*** animation if it's been paused before.
     + If it's true, placeholder restarts animation.
 
-- If "autoStart" is true, the placeholder animation will be started immediately after creation without any calls.
+- If `autoStart = true`, the placeholder animation will be started immediately after creation without any calls.
 
 ### Stop animation
 
@@ -119,55 +204,73 @@ If you don't want to use this placeholder anymore, you can destroy it, release a
 
     placeholder.destroy();
 
-## Action types
+## Actions
 
 ***Naughty Placeholder*** supports actions on focus, blur and clear input event.
 
-You can use "Placeholder.ActionType" to view constants:
+You can use `Placeholder.ActionType` to view constants:
 
-- start: start animation
-- resume: resume animation
-- pause: pause animation
-- stop: stop animation
+- `'start'` start animation
+- `'resume'` resume animation
+- `'pause'` pause animation
+- `'stop'` stop animation
 
-As easy as a pie!
-
-## Event types
+## Events
 
 ***Naughty Placeholder*** supports a number of events too.
 
-You can use "Placeholder.EventType" to view constants:
+You can use `Placeholder.EventType` to view constants:
 
-- start: when start animation
-- stop: when stop animation
-- pause: when pause animation
-- resume: when resume animation
-- begin-string: when begin typing string
-- end-string: when end of typing string
-- begin-loop: when start a loop
-- end-loop: when end of a loop
-- destroy: when destroy placeholder
+- `'start'` when start animation
+- `'stop'` when stop animation
+- `'pause'` when pause animation
+- `'resume'` when resume animation
+- `'begin-string'` when begin typing string
+- `'end-string'` when end of typing string
+- `'begin-loop'` when start a loop
+- `'end-loop'` when end of a loop
+- `'destroy'` when destroy placeholder
 
-For example, if you want to listen "begin-loop" event:
+For example, if you want to listen `begin-loop (Placeholder.EventType.BEGIN_LOOP)` event:
 
     placeholder.addEventListener('begin-loop', function (args) {
         // do something
     });
 
-"args" is an object:
+`args` is an object:
 
-- str: next string to type
-- strings: all of strings
-- index: next index of string in strings
-- loop: current loop number
-- delay: next delay to type
+- `str` next string to type
+- `strings` all of strings
+- `index` next index of string in strings
+- `loop` current loop number
+- `delay` next delay to type
 
-When you don't want to listen events anymore, you must call:
+When you don't want to listen an event anymore, you must call:
     
     placeholder.removeEventListener(eventName, eventHandler);
 
-    // Note: "eventHandler" must be same reference as second argument when you call:
-    //     placeholder.addEventListener(eventName, eventHanlder)
+    // Note: "eventHandler" must be same reference as second argument when you had called before:
+    placeholder.addEventListener(eventName, eventHanlder)
+
+## Change app endpoint
+
+Currently, my library endpoint is `Placeholder`. But if you want to use an other name, it's quite simple.
+
+Locate `sweet-placeholder.js` file, then replace line:
+
+    var APP_NAME = 'Placeholder';
+
+by any name making you feel comfortable, such as `YourPlaceholder`:
+
+    var APP_NAME = 'YourPlaceholder';
+
+Now you can use `YourPlaceholder.create(options)`, `YourPlaceholder.ActionType`, `YourPlaceholder.EventType` in your application.
+
+For minification version, you can use same technique in `sweet-placeholder.min.js` file or build it using above `sweet-placeholder.js` file by any javascript minifier tool.
+
+# Feedback
+
+Please feel free to send me feedback to my personal email: `vincejonesjunior@gmail.com`. Thank you all, you guys!
 
 [demo/gif]: img/demo.gif "Demo"
 [demo/page/input]: ../sweet-placeholder/demo/text-input.html
