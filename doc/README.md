@@ -16,8 +16,9 @@ Yeah, of course, there are at least three options such as label, "help text" abo
     - Lifecycle controllable: create, start, pause, resume, stop, destroy and loop.
     - Many trigger types for actions on input: focus, lose focus (blur), clear.
     - Many event types.
-2. **Cross-browser**. Support all modern browsers.
-3. **Small**. Minification version < 6KB, gzip ~2KB.
+2. **No dependencies**. No required libraries. Just add `<script>` tag and enjoy.
+3. **Cross-browser**. Support all modern browsers.
+4. **Small**. Minification version < 6KB, gzip ~2KB.
 
 # Demo
 You can self exploration this library via demo pages.
