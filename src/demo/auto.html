@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Auto-dectecting - Naughty placeholder</title>
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <style>
+        .panel {
+            color: #fdfdfa;
+            background-color: #719fdd;
+            padding: 20px 10px 30px 10px;
+        }
+
+        .mainLoginInput::-webkit-input-placeholder {
+          font-weight: bold;
+          font-style: italic;
+        }
+
+        .mainLoginInput::-moz-placeholder {
+          font-weight: bold;
+          font-style: italic;
+        }
+
+        .mainLoginInput:-ms-input-placeholder {
+          font-weight: bold;
+          font-style: italic;
+        }
+
+        .mainLoginInput:-moz-placeholder {
+          font-weight: bold;
+          font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><em>Auto-detecting demo</em></h1>
+        <hr>
+
+        <div class="row">
+            <form action="" class="col-8">
+                <div class="form-group panel">
+                    <label for="placeholder-input" class="text-center"><strong>FEEDBACK</strong></label>
+
+                    <input class="form-control is-valid mainLoginInput naughty-placeholder" type="text" id="placeholder-input" placeholder="Username" style="margin-bottom:5px;" np-autoStart="false" np-strings='["Your username contains at least 8 and maximum 16 characters", "Only letters (a-z), numbers(0-9) are allowed", "You can use your phone number as username", "You can\b\b\bCANNOT change it later"]'>
+
+                    <textarea class="form-control is-valid mainLoginInput naughty-placeholder" id="placeholder-input-1" placeholder="Review" rows=5 np-autoStart="false" np-strings='["What do you think about my library?", "Is it cool?", "Write something, please!", "Multi-lines in textarea? No problem!", "I love you so much...\nLove, love, love\n(\"-\")"]'></textarea>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/naughty-placeholder.js"></script>
+</body>
+</html>

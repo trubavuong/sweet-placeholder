@@ -1,6 +1,8 @@
 // Change app name to anything to use as global entry point
 var APP_NAME = 'NaughtyPlaceholder';
 
+var CLASS_NAME = 'naughty-placeholder';
+
 function EventDispatcher() {
     this.events = {};
 }
@@ -115,7 +117,7 @@ function transformString(s) {
 }
 
 function getNonNegativeNumber(delay, defaultDelay) {
-    return delay >= 0 ? delay : defaultDelay;
+    return (typeof delay === 'number' && delay >= 0) ? delay : defaultDelay;
 }
 
 function setPlaceholder(element, string) {
@@ -136,16 +138,19 @@ function Placeholder(options) {
     this.originalPlaceholder = this.element.getAttribute('placeholder') || '';
 
     this.loop = getNonNegativeNumber(options.loop, 0);
-    this.charDelay = getNonNegativeNumber(options.charDelay, 100);
+    this.charDelay = getNonNegativeNumber(options.charDelay, 50);
     this.stringDelay = getNonNegativeNumber(options.stringDelay, 1000);
-    this.newlineDelay = getNonNegativeNumber(options.newlineDelay, this.stringDelay);
-    this.backspaceDelay = getNonNegativeNumber(options.backspaceDelay, this.charDelay);
+    this.newlineDelay = getNonNegativeNumber(options.newlineDelay, 1000);
+    this.backspaceDelay = getNonNegativeNumber(options.backspaceDelay, 300);
 
-    this.autoStart = options.autoStart;
-    this.clearAction = options.clearAction;
-    this.focusAction = options.focusAction;
+    this.autoStart = !!options.autoStart;
+    this.clearAction = options.clearAction || ActionType.START;
+    this.focusAction = options.focusAction || ActionType.START;
     if ([ActionType.STOP, ActionType.PAUSE].indexOf(options.blurAction) >= 0) {
         this.blurAction = options.blurAction;
+    }
+    else {
+        this.blurAction = ActionType.STOP;
     }
 
     var manualDelayRegex = options.manualDelayRegex instanceof RegExp ? options.manualDelayRegex : /\^(\d+)/,
@@ -446,13 +451,51 @@ Placeholder.prototype._next = function () {
     }, state.next.delay);
 };
 
+function parseJsonElementAttribute(element, attribute) {
+    return JSON.parse(element.getAttribute(attribute) || '""');
+}
+
 var app = {
     EventType: EventType,
     ActionType: ActionType,
+
     create: function (options) {
         return new Placeholder(options);
+    },
+
+    createFromElement: function (element) {
+        return app.create({
+            element: element,
+            cursor: parseJsonElementAttribute(element, 'np-cursor'),
+            autoStart: parseJsonElementAttribute(element, 'np-autoStart'),
+            strings: parseJsonElementAttribute(element, 'np-strings'),
+            charDelay: parseJsonElementAttribute(element, 'np-charDelay'),
+            stringDelay: parseJsonElementAttribute(element, 'np-stringDelay'),
+            backspaceDelay: parseJsonElementAttribute(element, 'np-backspaceDelay'),
+            newlineDelay: parseJsonElementAttribute(element, 'np-newlineDelay'),
+            loop: parseJsonElementAttribute(element, 'np-loop'),
+            focusAction: parseJsonElementAttribute(element, 'np-focusAction'),
+            blurAction: parseJsonElementAttribute(element, 'np-blurAction'),
+            clearAction: parseJsonElementAttribute(element, 'np-clearAction'),
+        });
     }
 };
+
+function ready(callback) {
+    document.addEventListener('DOMContentLoaded', function () {
+        callback();
+    });
+}
+
+function createPlaceholders() {
+    var elements = document.getElementsByClassName(CLASS_NAME),
+        i;
+    for (i = 0; i < elements.length; i += 1) {
+        app.createFromElement(elements[i]);
+    }
+}
+
+ready(createPlaceholders);
 
 // UMD: AMD + CommonJS + Browser
 if (typeof define === 'function' && define.amd) {

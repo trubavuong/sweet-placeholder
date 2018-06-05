@@ -102,7 +102,7 @@ Options in details:
     
     Target element to deploy placeholder animation. It should be an `<input>` or `<textarea>`.
 
-- `charDelay` Integer (optional). Default: `100`
+- `charDelay` Integer (optional). Default: `50`
     
     Delay time between characters.
 
@@ -110,11 +110,11 @@ Options in details:
     
     Delay time between strings.
 
-- `backspaceDelay` Integer (optional). Default: equal to `charDelay`
+- `backspaceDelay` Integer (optional). Default: `300`
     
     Delay time to type `'\b'` (backspace) character (fake deletion effect).
 
-- `newlineDelay` Integer (optional). Default: equal to `stringDelay`
+- `newlineDelay` Integer (optional). Default: `1000`
     
     Delay time between lines in a string (multi-lines in textarea).
 
@@ -160,17 +160,23 @@ Options in details:
     
     Number of animation loops. If you pass 0, animation runs forever.
 
-- `focusAction` String (optional). Default: `null`
+- `focusAction` String (optional). Default: `start`
     
     Trigger action when input has been focused. See `NaughtyPlaceholder.ActionType` below to get more details.
 
-- `blurAction` String (optional). Default: `null`
+    Supported actions: `start`, `resume`, `stop`, `pause`.
+
+- `blurAction` String (optional). Default: `stop`
     
     Trigger action when input has been lost focus. See `NaughtyPlaceholder.ActionType` below to get more details.
 
-- `clearAction` String (optional). Default: `null`
+    Supported actions: `stop`, `pause`.
+
+- `clearAction` String (optional). Default: `start`
     
     Trigger action when input has been empty. See `NaughtyPlaceholder.ActionType` below to get more details.
+
+    Supported actions: `start`, `resume`, `stop`, `pause`.
 
 ## Basic workflow
 After creating a placeholder, you can use it to start/stop/pause/resume placeholder animation.
