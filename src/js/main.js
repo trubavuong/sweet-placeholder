@@ -1,5 +1,6 @@
 // Change app name to anything to use as global entry point
-var APP_NAME = 'NaughtyPlaceholder';
+var APP_NAME = 'NaughtyPlaceholder', // app endpoint
+    CLASS_NAME = 'np'; // class name
 
 function EventDispatcher() {
     this.events = {};
@@ -76,12 +77,14 @@ function filterStrings(rawStrings, manualDelayRegex, newlineDelay) {
         if (string && string.length > 0) {
             tmpString = string;
             stringSpec = {};
+            // detect manual delay
             while ((matches = tmpString.match(manualDelayRegex))) {
                 matchIndex = tmpString.search(manualDelayRegex);
                 stringSpec[matchIndex] = parseInt(matches[1], 10);
                 tmpString = tmpString.replace(matches[0], '');
             }
 
+            // detect new line for delaying
             for (j = 0; j < tmpString.length; j += 1) {
                 if (tmpString[j] === '\n') {
                     stringSpec[j] = newlineDelay;
@@ -104,6 +107,7 @@ function transformString(s) {
         c, i;
     for (i = 0; i < s.length; i += 1) {
         c = s[i];
+        // backspace character -> delete one character
         if (c === '\b' && r.length > 0) {
             r = r.substring(0, r.length - 1);
         }
@@ -115,7 +119,7 @@ function transformString(s) {
 }
 
 function getNonNegativeNumber(delay, defaultDelay) {
-    return delay >= 0 ? delay : defaultDelay;
+    return (typeof delay === 'number' && delay >= 0) ? delay : defaultDelay;
 }
 
 function setPlaceholder(element, string) {
@@ -132,20 +136,27 @@ function Placeholder(options) {
         throw new Error('"placeholder" attribute of passing element is not supported');
     }
 
+    if (this.element.$np) {
+        throw new Error('Already be placeholder');
+    }
+
     this.elementEventListeners = [];
     this.originalPlaceholder = this.element.getAttribute('placeholder') || '';
 
     this.loop = getNonNegativeNumber(options.loop, 0);
-    this.charDelay = getNonNegativeNumber(options.charDelay, 100);
+    this.charDelay = getNonNegativeNumber(options.charDelay, 50);
     this.stringDelay = getNonNegativeNumber(options.stringDelay, 1000);
-    this.newlineDelay = getNonNegativeNumber(options.newlineDelay, this.stringDelay);
-    this.backspaceDelay = getNonNegativeNumber(options.backspaceDelay, this.charDelay);
+    this.newlineDelay = getNonNegativeNumber(options.newlineDelay, 1000);
+    this.backspaceDelay = getNonNegativeNumber(options.backspaceDelay, 300);
 
-    this.autoStart = options.autoStart;
-    this.clearAction = options.clearAction;
-    this.focusAction = options.focusAction;
+    this.autoStart = !!options.autoStart;
+    this.clearAction = options.clearAction || ActionType.START;
+    this.focusAction = options.focusAction || ActionType.START;
     if ([ActionType.STOP, ActionType.PAUSE].indexOf(options.blurAction) >= 0) {
         this.blurAction = options.blurAction;
+    }
+    else {
+        this.blurAction = ActionType.STOP;
     }
 
     var manualDelayRegex = options.manualDelayRegex instanceof RegExp ? options.manualDelayRegex : /\^(\d+)/,
@@ -162,6 +173,8 @@ function Placeholder(options) {
 
     this._initState();
     this._bootstrap();
+
+    this.element.$np = this;
 }
 
 Placeholder.prototype.addEventListener = function (event, listener) {
@@ -226,6 +239,7 @@ Placeholder.prototype.destroy = function () {
 
     this._resetPlaceholder();
     this._dispatchEvent(EventType.DESTROY);
+    this.element.$np = null;
 };
 
 Placeholder.prototype._start = function () {
@@ -295,6 +309,7 @@ Placeholder.prototype._doAction = function (action) {
 
 Placeholder.prototype._bootstrap = function () {
     var self = this;
+
     this._addEventListenerToElement('keypress', function () {
         if (self.element.value) {
             self.pause();
@@ -350,14 +365,14 @@ Placeholder.prototype._predictNext = function () {
             stringIndex = state.stringIndex,
             strings = this.strings,
             str = strings[stringIndex],
-            specialDelay = this.stringSpecs[stringIndex][charIndex],
+            specialDelay = this.stringSpecs[stringIndex][charIndex], // manual delay
             appySpecialDelay = specialDelay !== undefined,
             delay = appySpecialDelay ? specialDelay : this.charDelay;
 
-        if (charIndex === 0) {
-            if (stringIndex === 0) {
+        if (charIndex === 0) { // begin string
+            if (stringIndex === 0) { // begin loop
                 events.push(EventType.BEGIN_LOOP);
-                if (this.loop > 0 && loop >= this.loop) {
+                if (this.loop > 0 && loop >= this.loop) { // stop
                     isStop = true;
                     if (!appySpecialDelay) {
                         delay = this.stringDelay;
@@ -371,19 +386,21 @@ Placeholder.prototype._predictNext = function () {
 
             events.push(EventType.BEGIN_STRING);
         }
-        else if (charIndex === str.length - 1) {
+        else if (charIndex === str.length - 1) { // end string
             isEndString = true;
             events.push(EventType.END_STRING);
-            if (stringIndex === strings.length - 1) {
+            if (stringIndex === strings.length - 1) { // end loop
                 events.push(EventType.END_LOOP);
                 isEndLoop = true;
             }
         }
 
+        // fake deletion effect
         if (!appySpecialDelay && str[charIndex] === '\b') {
             delay = this.backspaceDelay;
         }
 
+        // next state
         state.next = {
             str: transformString(str.substring(0, charIndex + 1) + (isEndString ? '' : this.cursor)),
             events: events,
@@ -446,13 +463,56 @@ Placeholder.prototype._next = function () {
     }, state.next.delay);
 };
 
+function parseJsonElementAttribute(element, attribute) {
+    return JSON.parse(element.getAttribute(attribute) || '""');
+}
+
+function ready(callback) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+            callback();
+        });
+    }
+    else {
+        callback();
+    }
+}
+
 var app = {
     EventType: EventType,
     ActionType: ActionType,
+
     create: function (options) {
         return new Placeholder(options);
+    },
+
+    createFromElement: function (element) {
+        return app.create({
+            element: element,
+            cursor: parseJsonElementAttribute(element, CLASS_NAME + '-cursor'),
+            autoStart: parseJsonElementAttribute(element, CLASS_NAME + '-autoStart'),
+            strings: parseJsonElementAttribute(element, CLASS_NAME + '-strings'),
+            charDelay: parseJsonElementAttribute(element, CLASS_NAME + '-charDelay'),
+            stringDelay: parseJsonElementAttribute(element, CLASS_NAME + '-stringDelay'),
+            backspaceDelay: parseJsonElementAttribute(element, CLASS_NAME + '-backspaceDelay'),
+            newlineDelay: parseJsonElementAttribute(element, CLASS_NAME + '-newlineDelay'),
+            loop: parseJsonElementAttribute(element, CLASS_NAME + '-loop'),
+            focusAction: parseJsonElementAttribute(element, CLASS_NAME + '-focusAction'),
+            blurAction: parseJsonElementAttribute(element, CLASS_NAME + '-blurAction'),
+            clearAction: parseJsonElementAttribute(element, CLASS_NAME + '-clearAction'),
+        });
+    },
+
+    autoDetect: function () {
+        var elements = document.getElementsByClassName(CLASS_NAME),
+            i;
+        for (i = 0; i < elements.length; i += 1) {
+            app.createFromElement(elements[i]);
+        }
     }
 };
+
+ready(app.autoDetect);
 
 // UMD: AMD + CommonJS + Browser
 if (typeof define === 'function' && define.amd) {

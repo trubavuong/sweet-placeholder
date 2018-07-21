@@ -9,22 +9,20 @@ Yeah, of course, there are at least three options such as label, "help text" abo
 
 # Features
 
-1. **Typing effect**.
+1. **Easy to use**. You can create placeholder manually by JS or just add conventional markup to static HTML.
+2. **Typing effect**.
     - Speed controllable by many delay types.
     - Backspace animation.
     - Multi-lines animation in textarea.
     - Lifecycle controllable: create, start, pause, resume, stop, destroy and loop.
     - Many trigger types for actions on input: focus, lose focus (blur), clear.
     - Many event types.
-2. **No dependencies**. No required libraries. Just add `<script>` tag and enjoy.
-3. **Cross-browser**. Support all modern browsers.
-4. **Small**. Minification version < 6KB, gzip ~2KB.
+3. **No dependencies**. No required libraries. Just add `<script>` tag and enjoy.
+4. **Cross-browser**. Support all modern browsers.
+5. **Small**. Minification version < 6KB, gzip ~2KB.
 
 # Demo
-You can self exploration this library via demo pages.
-
-1. [Naughty Placeholder with &lt;input&gt;][demo/page/input]
-2. [Naughty Placeholder with &lt;textarea&gt;][demo/page/textarea]
+You can self exploration this library via [demo pages][demo/index].
 
 # Usage
 
@@ -36,7 +34,9 @@ You can self exploration this library via demo pages.
 
 Normally, javascript files are distributed at `naughty-placeholder/naughty-placeholder/js/` directory.
 
-## Create placeholder
+## Create placeholder manually
+
+*I will tell you how to create placeholder automatically in later section.*
 
 Before using any operations, you must create a placeholder instance. It looks like:
 
@@ -102,7 +102,7 @@ Options in details:
     
     Target element to deploy placeholder animation. It should be an `<input>` or `<textarea>`.
 
-- `charDelay` Integer (optional). Default: `100`
+- `charDelay` Integer (optional). Default: `50`
     
     Delay time between characters.
 
@@ -110,11 +110,11 @@ Options in details:
     
     Delay time between strings.
 
-- `backspaceDelay` Integer (optional). Default: equal to `charDelay`
+- `backspaceDelay` Integer (optional). Default: `300`
     
     Delay time to type `'\b'` (backspace) character (fake deletion effect).
 
-- `newlineDelay` Integer (optional). Default: equal to `stringDelay`
+- `newlineDelay` Integer (optional). Default: `1000`
     
     Delay time between lines in a string (multi-lines in textarea).
 
@@ -144,9 +144,9 @@ Options in details:
 
         You can change `^delayTime` pattern to detect manual delay time if you want. See `manualDelayRegex` option below.
 
-- `manualDelayRegex` RegExp (optional). Default: `/\^(/d+)/`
+- `manualDelayRegex` RegExp (optional). Default: `/\^(\d+)/`
     
-    Regular expression to detect manual delay time. It must contain digits group `(/d+)`.
+    Regular expression to detect manual delay time. It must contain digits group `(\d+)`.
 
 - `cursor` String (optional). Default: `|`
     
@@ -160,17 +160,23 @@ Options in details:
     
     Number of animation loops. If you pass 0, animation runs forever.
 
-- `focusAction` String (optional). Default: `null`
+- `focusAction` String (optional). Default: `start`
     
     Trigger action when input has been focused. See `NaughtyPlaceholder.ActionType` below to get more details.
 
-- `blurAction` String (optional). Default: `null`
+    Supported actions: `start`, `resume`, `stop`, `pause`.
+
+- `blurAction` String (optional). Default: `stop`
     
     Trigger action when input has been lost focus. See `NaughtyPlaceholder.ActionType` below to get more details.
 
-- `clearAction` String (optional). Default: `null`
+    Supported actions: `stop`, `pause`.
+
+- `clearAction` String (optional). Default: `start`
     
     Trigger action when input has been empty. See `NaughtyPlaceholder.ActionType` below to get more details.
+
+    Supported actions: `start`, `resume`, `stop`, `pause`.
 
 ## Basic workflow
 After creating a placeholder, you can use it to start/stop/pause/resume placeholder animation.
@@ -198,6 +204,8 @@ Note:
 You can resume later:
 
     placeholder.start();
+
+Hmmm, why don't create `resume()` method? Yeah, I could. But sometimes, you create an UI and don't need to know current placeholder state, you just need only two buttons: play and pause. `start()` works for both resume and totally restart.
 
 ### Destroy placeholder
 
@@ -253,26 +261,65 @@ When you don't want to listen an event anymore, you must call:
     // Note: "eventHandler" must be same reference as second argument when you had called before:
     placeholder.addEventListener(eventName, eventHanlder)
 
+## Create placeholder automatically
+
+Just add an element with conventional to static HTML:
+
+- Required class name: `np` (can be changed, see below)
+- Add prefix `np-` to option as an attribute, for example, `cursor` becomes `np-cursor`
+
+Example:
+
+    <input class="np" type="text" placeholder="Username" np-autoStart="false" np-strings='["Your username contains at least 8 and maximum 16 characters", "Only letters (a-z), numbers(0-9) are allowed", "You can use your phone number as username", "You can\b\b\bCANNOT change it later"]'>
+
+If your element is dynamically added to HTML, you have to call:
+
+    NaughtyPlaceholder.autoDetect();
+
+to re-detect placeholders in your HTML page. Or you can call:
+
+    var placeholder = NaughtyPlaceholder.createFromElement(element);
+
+## Get placeholder instance from element
+
+Placeholder instance is attacted to DOM element via `$np` attribute.
+
+    var element = document.getElementById('your-id'),
+        placeholder = element.$np;
+
+    if (placeholder) {
+        placeholder.start();
+    }    
+
 ## Change app endpoint
 
 Currently, my library endpoint is `NaughtyPlaceholder`. But if you want to use an other name, it's quite simple.
 
 Locate `naughty-placeholder.js` file, then replace line:
 
-    var APP_NAME = 'NaughtyPlaceholder';
+    var APP_NAME = 'NaughtyPlaceholder'
 
 by any name making you feel comfortable, such as `YourPlaceholder`:
 
-    var APP_NAME = 'YourPlaceholder';
+    var APP_NAME = 'YourPlaceholder'
 
 Now you can use `YourPlaceholder.create(options)`, `YourPlaceholder.ActionType`, `YourPlaceholder.EventType` in your application.
 
 For minification version, you can use same technique in `naughty-placeholder.min.js` file or build it using above `naughty-placeholder.js` file by any javascript minifier tool.
+
+## Change required class name for automatically detection
+
+Same as **Change app endpoint**, find section:
+
+    CLASS_NAME = 'np'
+
+then replace `np` to whatever you want.
+
+Note that this class name will be used as attribute prefix, for example, if class name is `something`, `np-cursor` becomes `something-cursor`.
 
 # Feedback
 
 Please feel free to send me feedback to my personal email: `vincejonesjunior@gmail.com`. Thank you all, you guys!
 
 [demo/gif]: img/demo.gif "Demo"
-[demo/page/input]: ../naughty-placeholder/demo/text-input.html
-[demo/page/textarea]: ../naughty-placeholder/demo/textarea.html
+[demo/index]: ../naughty-placeholder/demo/index.html
