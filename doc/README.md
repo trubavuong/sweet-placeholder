@@ -19,7 +19,7 @@ Yeah, of course, there are at least three options such as label, "help text" abo
     - Many event types.
 3. **No dependencies**. No required libraries. Just add `<script>` tag and enjoy.
 4. **Cross-browser**. Support all modern browsers.
-5. **Small**. Minification version < 6KB, gzip ~2KB.
+5. **Small**. Minification version < 7KB, gzip < 3KB.
 
 # Demo
 You can self exploration this library via [demo pages][demo/index].
